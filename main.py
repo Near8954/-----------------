@@ -25,14 +25,14 @@ con.commit()
 def is_image(name):
     ext = ['.jpeg', '.png', '.bmp', '.jpg']
     for i in ext:
-        if i in name:
+        if i in name or i.upper() in name:
             return True
     return False
 
 
 ALL_DATA = {}
-hashed_data = set()
-for j in (os.walk("D:\\")):
+hashed_data = []
+for j in (os.walk("D:\\gr_test")):
     for k in j[2]:
         if is_image(k):
             ALL_DATA[k] = j[0]
@@ -43,12 +43,20 @@ for j in (os.walk("D:\\")):
                 f = open(path, 'rb')
                 img = f.read()
                 x = hashlib.md5(img).hexdigest()
-                hashed_data.add(x)
+                hashed_data.append(x)
                 query = f"""INSERT INTO graphical_files VALUES ('{k}', '{path}', '{x}')"""
                 cur.execute(query)
-
-for i in hashed_data:
-    pass
+data = []
+for i in set(hashed_data):
+    if hashed_data.count(i) > 1:
+        query = f"""select file_name, path from graphical_files where (file_hash = '{i}')"""
+        data.append(list(cur.execute(query)))
+print(data)
+for i in range(len(data)):
+    f1 = open(data[i][0][1], 'rb')
+    f2 = open(data[i][1][1], 'rb')
+    if f1 == f2:
+        print('check')
 
 
 con.commit()
