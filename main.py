@@ -7,8 +7,11 @@ import hashlib
 
 c = 0
 hashed_data = []
-
-
+stopped = False
+ALL_DATA = {}
+text = f''
+hashed_data = []
+statistic = ''
 # Подключение к БД
 con = sqlite3.connect("files.db")
 
@@ -17,12 +20,34 @@ cur = con.cursor()
 
 
 cur.execute("""CREATE TABLE IF NOT EXISTS graphical_files (
-    file_name text, 
-    path text, 
+    file_name text,
+    path text,
     file_hash
 )""")
 
 con.commit()
+
+
+def main():
+    global text
+    global stopped
+    for j in (os.walk("D:\\")):
+        if not stopped:
+            for k in j[2]:
+                if is_image(k):
+                    ALL_DATA[k] = j[0]
+                    path = j[0] + '\\' + k
+                    query = f"""select count(1) as cnt from graphical_files where file_name = '{k}' and path='{path}'"""
+                    result = cur.execute(query)
+                    text += f'{k} {path}\n'
+                    if list(result)[0][0] == 0:
+                        f = open(path, 'rb')
+                        img = f.read()
+                        x = hashlib.md5(img).hexdigest()
+                        hashed_data.append(x)
+                        query = f"""INSERT INTO graphical_files VALUES ('{k}', '{path}', '{x}')"""
+                        cur.execute(query)
+    con.commit()
 
 
 def is_image(name):
@@ -35,38 +60,25 @@ def is_image(name):
 
 class MyWidget(QMainWindow):
     def __init__(self):
-        self.stopped = True
+
         super().__init__()
         uic.loadUi('simple_gui.ui', self)  # Загружаем дизайн
         self.pushButton.clicked.connect(self.run)
         self.pushButton_2.clicked.connect(self.stop)
 
     def run(self):
-        self.stopped = False
+        global hashed_data
+        global stopped
+        global ALL_DATA
+        global hashed_data
+        global statistic
 
-        ALL_DATA = {}
-        text = f''
-        statistic = ''
-        hashed_data = []
         statistic += 'Начало поиска файлов\n'
         self.plainTextEdit_3.setPlainText(statistic)
-        for j in (os.walk("D:\\")):
-            if not self.stopped:
-                for k in j[2]:
-                    if is_image(k):
-                        ALL_DATA[k] = j[0]
-                        path = j[0] + '\\' + k
-                        query = f"""select count(1) as cnt from graphical_files where file_name = '{k}' and path='{path}'"""
-                        result = cur.execute(query)
-                        text += f'{k} {path}\n'
-                        if list(result)[0][0] == 0:
-                            f = open(path, 'rb')
-                            img = f.read()
-                            x = hashlib.md5(img).hexdigest()
-                            hashed_data.append(x)
-                            query = f"""INSERT INTO graphical_files VALUES ('{k}', '{path}', '{x}')"""
-                            cur.execute(query)
+
+        main()
         con.commit()
+
         self.plainTextEdit.setPlainText(text)
         statistic += 'Конец поиска файлов\n'
         self.plainTextEdit_3.setPlainText(statistic)
@@ -102,7 +114,8 @@ class MyWidget(QMainWindow):
             event.ignore()
 
     def stop(self):
-        self.stopped = True
+        global stopped
+        stopped = True
 
 
 if __name__ == '__main__':
