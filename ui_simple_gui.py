@@ -197,6 +197,11 @@ class Ui_Scanner(object):
         self.pushButton_2 = QtWidgets.QPushButton(Scanner)
         self.pushButton_2.setGeometry(QtCore.QRect(1160, 120, 151, 71))
         self.pushButton_2.setObjectName("pushButton_2")
+        self.plainTextEdit_3 = QtWidgets.QPlainTextEdit(Scanner)
+        self.plainTextEdit_3.setEnabled(False)
+        self.plainTextEdit_3.setGeometry(QtCore.QRect(1180, 206, 121, 211))
+        self.plainTextEdit_3.setStyleSheet("background-color: rgb(216, 237, 255);")
+        self.plainTextEdit_3.setObjectName("plainTextEdit_3")
 
         self.retranslateUi(Scanner)
         QtCore.QMetaObject.connectSlotsByName(Scanner)

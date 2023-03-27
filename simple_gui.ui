@@ -554,6 +554,22 @@
     <string>Stop</string>
    </property>
   </widget>
+  <widget class="QPlainTextEdit" name="plainTextEdit_3">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>1180</x>
+     <y>206</y>
+     <width>121</width>
+     <height>211</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: rgb(216, 237, 255);</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections/>

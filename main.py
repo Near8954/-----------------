@@ -46,8 +46,10 @@ class MyWidget(QMainWindow):
 
         ALL_DATA = {}
         text = f''
+        statistic = ''
         hashed_data = []
-        print('Начало поиска файлов')
+        statistic += 'Начало поиска файлов\n'
+        self.plainTextEdit_3.setPlainText(statistic)
         for j in (os.walk("D:\\")):
             if not self.stopped:
                 for k in j[2]:
@@ -66,14 +68,17 @@ class MyWidget(QMainWindow):
                             cur.execute(query)
         con.commit()
         self.plainTextEdit.setPlainText(text)
-        print('Конец поиска файлов')
+        statistic += 'Конец поиска файлов\n'
+        self.plainTextEdit_3.setPlainText(statistic)
         data = []
-        print('Поиск хэшей')
+        statistic += 'Поиск хэшей\n'
+        self.plainTextEdit_3.setPlainText(statistic)
         for i in set(hashed_data):
             if hashed_data.count(i) > 1:
                 query = f"""select file_name, path from graphical_files where (file_hash = '{i}')"""
                 data.append(list(cur.execute(query)))
-        print('Конец поиска хэшей')
+        statistic += 'Конец поиска хэшей\n'
+        self.plainTextEdit_3.setPlainText(statistic)
         text_2 = f''
         for i in range(len(data)):
             for j in range(len(data[i])):
