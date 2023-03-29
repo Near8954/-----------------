@@ -1,53 +1,15 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt5 import uic  # Импортируем uic
+from PyQt5 import uic
+from PyQt5.QtCore import QObject, QThread, pyqtSignal  # Импортируем uic
 import sys
 import sqlite3
 import os
 import hashlib
+import threading
+import time
 
 c = 0
 hashed_data = []
-stopped = False
-ALL_DATA = {}
-text = f''
-hashed_data = []
-statistic = ''
-# Подключение к БД
-con = sqlite3.connect("files.db")
-
-# Создание курсора
-cur = con.cursor()
-
-
-cur.execute("""CREATE TABLE IF NOT EXISTS graphical_files (
-    file_name text,
-    path text,
-    file_hash
-)""")
-
-con.commit()
-
-
-def main():
-    global text
-    global stopped
-    for j in (os.walk("D:\\")):
-        if not stopped:
-            for k in j[2]:
-                if is_image(k):
-                    ALL_DATA[k] = j[0]
-                    path = j[0] + '\\' + k
-                    query = f"""select count(1) as cnt from graphical_files where file_name = '{k}' and path='{path}'"""
-                    result = cur.execute(query)
-                    text += f'{k} {path}\n'
-                    if list(result)[0][0] == 0:
-                        f = open(path, 'rb')
-                        img = f.read()
-                        x = hashlib.md5(img).hexdigest()
-                        hashed_data.append(x)
-                        query = f"""INSERT INTO graphical_files VALUES ('{k}', '{path}', '{x}')"""
-                        cur.execute(query)
-    con.commit()
 
 
 def is_image(name):
@@ -58,47 +20,132 @@ def is_image(name):
     return False
 
 
-class MyWidget(QMainWindow):
-    def __init__(self):
+class Worker(QObject):
+    finished = pyqtSignal()
+    progress1 = pyqtSignal(str)
+    progress2 = pyqtSignal(str)
+    progress3 = pyqtSignal(str)
+    stop = pyqtSignal()
 
-        super().__init__()
-        uic.loadUi('simple_gui.ui', self)  # Загружаем дизайн
-        self.pushButton.clicked.connect(self.run)
-        self.pushButton_2.clicked.connect(self.stop)
+    stopped = False
+
+    def setupDB(self):
+        # Подключение к БД
+        self.con = sqlite3.connect("files.db")
+
+        # Создание курсора
+        self.cur = self.con.cursor()
+
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS graphical_files (
+            file_name text, 
+            path text, 
+            file_hash
+        )""")
+
+        self.con.commit()
 
     def run(self):
-        global hashed_data
-        global stopped
-        global ALL_DATA
-        global hashed_data
-        global statistic
-
-        statistic += 'Начало поиска файлов\n'
-        self.plainTextEdit_3.setPlainText(statistic)
-
-        main()
-        con.commit()
-
-        self.plainTextEdit.setPlainText(text)
-        statistic += 'Конец поиска файлов\n'
-        self.plainTextEdit_3.setPlainText(statistic)
+        self.setupDB()
+        ALL_DATA = {}
+        text = f''
+        text_2 = f''
+        text_3 = f''
+        hashed_data = []
+        text_3 += 'Начало поиска файлов\n'
+        self.progress3.emit(text_3)
+        for j in (os.walk("D:\\")):
+            for k in j[2]:
+                if not self.stopped:
+                    if is_image(k) and not '$' in k:
+                        ALL_DATA[k] = j[0]
+                        path = j[0] + '\\' + k
+                        query = f"""select count(1) as cnt from graphical_files where file_name = '{k}' and path='{path}'"""
+                        result = self.cur.execute(query)
+                        text += f'{k} {path}\n'
+                        if list(result)[0][0] == 0:
+                            f = open(path, 'rb')
+                            img = f.read()
+                            x = hashlib.md5(img).hexdigest()
+                            hashed_data.append(x)
+                            query = f"""INSERT INTO graphical_files VALUES ('{k}', '{path}', '{x}')"""
+                            self.cur.execute(query)
+        self.progress1.emit(text)
+        self.con.commit()
+        text_3 += 'Конец поиска файлов\n'
+        text_3 += 'Поиск хэшей\n'
+        self.progress3.emit(text_3)
         data = []
-        statistic += 'Поиск хэшей\n'
-        self.plainTextEdit_3.setPlainText(statistic)
         for i in set(hashed_data):
             if hashed_data.count(i) > 1:
                 query = f"""select file_name, path from graphical_files where (file_hash = '{i}')"""
-                data.append(list(cur.execute(query)))
-        statistic += 'Конец поиска хэшей\n'
-        self.plainTextEdit_3.setPlainText(statistic)
-        text_2 = f''
+                data.append(list(self.cur.execute(query)))
+        text_3 += 'Конец поиска хэшей\n'
+        self.progress3.emit(text_3)
         for i in range(len(data)):
             for j in range(len(data[i])):
-                text_2 += f'{data[i][j][0]} {data[i][j][1]}'
+                text_2 += f'name: {data[i][j][0]} path: {data[i][j][1]}\n'
+            text_2 += '\n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
 
-        self.plainTextEdit_2.setPlainText(text_2)
+        self.progress2.emit(text_2)
+        self.finished.emit()
+        self.con.close()
+
+
+class MyWidget(QMainWindow):
+    def __init__(self):
+        self.stopped = True
+        super().__init__()
+        uic.loadUi('simple_gui.ui', self)  # Загружаем дизайн
+        self.pushButton.clicked.connect(self.run_cmd)
+        self.pushButton_2.clicked.connect(self.stop)
+
+    def setupDB(self):
+        # Подключение к БД
+        self.con = sqlite3.connect("files.db")
+
+        # Создание курсора
+        self.cur = self.con.cursor()
+
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS graphical_files (
+            file_name text, 
+            path text, 
+            file_hash
+        )""")
+
+        self.con.commit()
+
+    def run_cmd(self):
+        self.plainTextEdit.setPlainText('')
+        self.plainTextEdit_2.setPlainText('')
+        self.pushButton.setEnabled(False)
+        self.thread = QThread()
+        self.worker = Worker()
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress1.connect(self.reportProgress1)
+        self.worker.progress2.connect(self.reportProgress2)
+        self.worker.progress3.connect(self.reportProgress3)
+        self.thread.start()
+        self.thread.finished.connect(lambda: self.pushButton.setEnabled(True))
+
+    def stop(self):
+        self.stopped = True
+        self.pushButton.setEnabled(True)
+
+    def reportProgress1(self, s):
+        self.plainTextEdit.setPlainText(s)
+
+    def reportProgress2(self, s):
+        self.plainTextEdit_2.setPlainText(s)
+
+    def reportProgress3(self, s):
+        self.plainTextEdit_3.setPlainText(s)
 
     def closeEvent(self, event):  # Переопределяем кнопку закрытия приложения
+        self.setupDB()
         dlg = QMessageBox(self)
         dlg.setWindowTitle("Выход")
         dlg.setText("Вы уверены, что хотите уйти?")
@@ -107,15 +154,12 @@ class MyWidget(QMainWindow):
         button = dlg.exec()
 
         if button == QMessageBox.Yes:
-            event.accept()
-            con.close()
+            self.con.close()
             os.remove('files.db')
+            self.stop()
+            event.accept()
         else:
             event.ignore()
-
-    def stop(self):
-        global stopped
-        stopped = True
 
 
 if __name__ == '__main__':
