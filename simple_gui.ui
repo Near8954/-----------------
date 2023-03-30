@@ -14,7 +14,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Scanner</string>
   </property>
   <widget class="QPushButton" name="pushButton">
    <property name="geometry">
@@ -480,7 +480,7 @@
       <x>0</x>
       <y>0</y>
       <width>1222</width>
-      <height>50022</height>
+      <height>75522</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -492,7 +492,7 @@
        <property name="minimumSize">
         <size>
          <width>1200</width>
-         <height>50000</height>
+         <height>75500</height>
         </size>
        </property>
        <property name="styleSheet">

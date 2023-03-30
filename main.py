@@ -87,10 +87,9 @@ class Worker(QObject):
             for j in range(len(data[i])):
                 text_2 += f'name: {data[i][j][0]} path: {data[i][j][1]}\n'
             text_2 += '\n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
-
         self.progress2.emit(text_2)
-        self.finished.emit()
         self.con.close()
+        self.finished.emit()
 
 
 class MyWidget(QMainWindow):
@@ -100,6 +99,7 @@ class MyWidget(QMainWindow):
         uic.loadUi('simple_gui.ui', self)  # Загружаем дизайн
         self.pushButton.clicked.connect(self.run_cmd)
         self.pushButton_2.clicked.connect(self.stop)
+        self.pushButton_2.setEnabled(False)
 
     def setupDB(self):
         # Подключение к БД
@@ -120,19 +120,22 @@ class MyWidget(QMainWindow):
         self.plainTextEdit.setPlainText('')
         self.plainTextEdit_2.setPlainText('')
         self.pushButton.setEnabled(False)
+        self.pushButton_2.setEnabled(True)
         self.thread = QThread()
         self.worker = Worker()
         self.worker.moveToThread(self.thread)
         self.thread.started.connect(self.worker.run)
         self.worker.finished.connect(self.thread.quit)
         self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(
+            lambda: self.pushButton_2.setEnabled(False))
+        self.worker.finished.connect(lambda: os.remove('files.db'))
         self.thread.finished.connect(self.thread.deleteLater)
         self.worker.progress1.connect(self.reportProgress1)
         self.worker.progress2.connect(self.reportProgress2)
         self.worker.progress3.connect(self.reportProgress3)
         self.thread.finished.connect(lambda: self.pushButton.setEnabled(True))
         self.thread.start()
-        
 
     def stop(self):
         self.worker.stopped = True

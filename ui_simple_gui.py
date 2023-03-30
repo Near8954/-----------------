@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'd:\работа с графикой\simple_gui.ui'
+# Form implementation generated from reading ui file 'c:\Users\romab\OneDrive\Документы\GitHub\CHELYABINSK-NEAR\-----------------\simple_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -168,13 +168,13 @@ class Ui_Scanner(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1222, 50022))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1222, 75522))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.gridLayout = QtWidgets.QGridLayout(self.scrollAreaWidgetContents)
         self.gridLayout.setObjectName("gridLayout")
         self.plainTextEdit = QtWidgets.QPlainTextEdit(self.scrollAreaWidgetContents)
         self.plainTextEdit.setEnabled(False)
-        self.plainTextEdit.setMinimumSize(QtCore.QSize(1200, 50000))
+        self.plainTextEdit.setMinimumSize(QtCore.QSize(1200, 75500))
         self.plainTextEdit.setStyleSheet("background-color: rgb(198, 199, 189);")
         self.plainTextEdit.setObjectName("plainTextEdit")
         self.gridLayout.addWidget(self.plainTextEdit, 0, 0, 1, 1)
@@ -208,6 +208,6 @@ class Ui_Scanner(object):
 
     def retranslateUi(self, Scanner):
         _translate = QtCore.QCoreApplication.translate
-        Scanner.setWindowTitle(_translate("Scanner", "Form"))
+        Scanner.setWindowTitle(_translate("Scanner", "Scanner"))
         self.pushButton.setText(_translate("Scanner", "Start scanning"))
         self.pushButton_2.setText(_translate("Scanner", "Stop"))
