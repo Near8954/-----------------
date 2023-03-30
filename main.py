@@ -54,6 +54,8 @@ class Worker(QObject):
         text_3 += 'Начало поиска файлов\n'
         self.progress3.emit(text_3)
         for j in (os.walk("D:\\")):
+            if self.stopped:
+                break
             for k in j[2]:
                 if not self.stopped:
                     if is_image(k) and not '$' in k:
@@ -128,12 +130,14 @@ class MyWidget(QMainWindow):
         self.worker.progress1.connect(self.reportProgress1)
         self.worker.progress2.connect(self.reportProgress2)
         self.worker.progress3.connect(self.reportProgress3)
-        self.thread.start()
         self.thread.finished.connect(lambda: self.pushButton.setEnabled(True))
+        self.thread.start()
+        
 
     def stop(self):
-        self.stopped = True
+        self.worker.stopped = True
         self.pushButton.setEnabled(True)
+        self.pushButton_2.setEnabled(False)
 
     def reportProgress1(self, s):
         self.plainTextEdit.setPlainText(s)
