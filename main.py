@@ -5,6 +5,9 @@ import sys
 import sqlite3
 import os
 import hashlib
+import threading
+import time
+
 c = 0
 hashed_data = []
 
