@@ -39,7 +39,7 @@ class Worker(QObject):
         self.cur.execute("""CREATE TABLE IF NOT EXISTS graphical_files (
             file_name text, 
             path text, 
-            file_hash
+            file_hash text
         )""")
 
         self.con.commit()
@@ -61,8 +61,12 @@ class Worker(QObject):
                     if is_image(k) and not '$' in k:
                         ALL_DATA[k] = j[0]
                         path = j[0] + '\\' + k
-                        query = f"""select count(1) as cnt from graphical_files where file_name = '{k}' and path='{path}'"""
-                        result = self.cur.execute(query)
+                        query = f"select count(1) as cnt from graphical_files where file_name = '{k}' and path='{path}'"
+                        try:
+                            result = self.cur.execute(query)
+                        except Exception:
+                            print(k, path)
+                            continue
                         text += f'{k} {path}\n'
                         if list(result)[0][0] == 0:
                             f = open(path, 'rb')
