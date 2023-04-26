@@ -5,19 +5,6 @@ import sys
 import sqlite3
 import os
 import hashlib
-import threading
-import time
-
-c = 0
-hashed_data = []
-
-
-def is_image(name):
-    ext = ['.jpeg', '.png', '.bmp', '.jpg']
-    for i in ext:
-        if i in name or i.upper() in name:
-            return True
-    return False
 
 
 class Worker(QObject):
@@ -28,6 +15,13 @@ class Worker(QObject):
     stop = pyqtSignal()
 
     stopped = False
+
+    def is_image(self, name):
+        ext = ['.jpeg', '.png', '.bmp', '.jpg']
+        for i in ext:
+            if i in name or i.upper() in name:
+                return True
+        return False
 
     def setupDB(self):
         # Подключение к БД
@@ -58,7 +52,7 @@ class Worker(QObject):
                 break
             for k in j[2]:
                 if not self.stopped:
-                    if is_image(k) and not '$' in k:
+                    if self.is_image(k) and not '$' in k:
                         ALL_DATA[k] = j[0]
                         path = j[0] + '\\' + k
                         query = "select count(1) as cnt from graphical_files where file_name = :filename and path=:path"
@@ -92,7 +86,7 @@ class Worker(QObject):
         for i in range(len(data)):
             for j in range(len(data[i])):
                 text_2 += f'name: {data[i][j][0]} path: {data[i][j][1]}\n'
-            text_2 += '\n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
+            text_2 += '---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
         text_3 += 'Конец работы программы'
         self.progress3.emit(text_3)
         self.progress2.emit(text_2)
