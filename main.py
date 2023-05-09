@@ -5,6 +5,7 @@ import sys
 import sqlite3
 import os
 import hashlib
+import time
 
 
 class Worker(QObject):
@@ -42,11 +43,14 @@ class Worker(QObject):
         hashed_data = []
         text_3 += 'Начало поиска файлов\n\n'
         self.progress3.emit(text_3)
+        cnt2 = 0
+        time_start = time.time()
         for j in (os.walk("D:\\")):
             if self.stopped:
                 break
             for k in j[2]:
                 if not self.stopped:
+                    cnt2 += 1
                     if self.is_image(k) and not '$' in k:
                         ALL_DATA[k] = j[0]
                         path = j[0] + '\\' + k
@@ -66,6 +70,7 @@ class Worker(QObject):
                             query = """INSERT INTO graphical_files VALUES (:k, :path, :x)"""
                             self.cur.execute(
                                 query, {'k': k, 'path': path, 'x': x})
+        time_all = time.time() - time_start
         self.progress1.emit(text)
         self.con.commit()
         text_3 += 'Конец поиска файлов\n\n'
@@ -78,11 +83,15 @@ class Worker(QObject):
                 data.append(list(self.cur.execute(query)))
         text_3 += 'Конец поиска хэшей\n\n'
         self.progress3.emit(text_3)
+        cnt = 0
         for i in range(len(data)):
             for j in range(len(data[i])):
+                cnt += 1
                 text_2 += f'name: {data[i][j][0]} path: {data[i][j][1]}\n'
             text_2 += '---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n'
-        text_3 += 'Конец работы программы'
+        text_3 += 'Конец работы программы\n\n'
+        text_3 += (str(cnt) + '\n\n')
+        text_3 += str(int(cnt2 / time_all))
         self.progress3.emit(text_3)
         self.progress2.emit(text_2)
         self.con.close()
