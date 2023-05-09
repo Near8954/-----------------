@@ -24,18 +24,13 @@ class Worker(QObject):
         return False
 
     def setupDB(self):
-        # Подключение к БД
-        self.con = sqlite3.connect("files.db")
-
-        # Создание курсора
-        self.cur = self.con.cursor()
-
+        self.con = sqlite3.connect("files.db")  # Подключение к БД
+        self.cur = self.con.cursor()  # Создание курсора
         self.cur.execute("""CREATE TABLE IF NOT EXISTS graphical_files (
             file_name text, 
             path text, 
             file_hash text
         )""")
-
         self.con.commit()
 
     def run(self):
