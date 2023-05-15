@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt5 import uic
+from PyQt5 import uic, QtGui
 from PyQt5.QtCore import QObject, QThread, pyqtSignal  # Импортируем uic
 import sys
 import sqlite3
@@ -101,8 +101,10 @@ class Worker(QObject):
 class MyWidget(QMainWindow):
     def __init__(self):
         self.stopped = True
+        self.started = False
         super().__init__()
         uic.loadUi('simple_gui.ui', self)  # Загружаем дизайн
+        self.setWindowIcon(QtGui.QIcon('icon2.png'))
         self.pushButton.clicked.connect(self.run_cmd)
         self.pushButton_2.clicked.connect(self.stop)
         self.pushButton_2.setEnabled(False)
@@ -123,6 +125,7 @@ class MyWidget(QMainWindow):
         self.con.commit()
 
     def run_cmd(self):
+        self.started = True
         self.plainTextEdit.setPlainText('')
         self.plainTextEdit_2.setPlainText('')
         self.pushButton.setEnabled(False)
@@ -144,7 +147,8 @@ class MyWidget(QMainWindow):
         self.thread.start()
 
     def stop(self):
-        self.worker.stopped = True
+        if self.started:
+            self.worker.stopped = True
         self.pushButton.setEnabled(True)
         self.pushButton_2.setEnabled(False)
 
